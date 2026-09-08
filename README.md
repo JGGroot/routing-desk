@@ -20,6 +20,10 @@ Vanilla JS, no dependencies, no build step. One file.
 Opened as a local file it runs on seeded sample data so it can be demoed
 without touching SharePoint. `?rddemo=1` forces that mode.
 
+**Upgrading from 2.0.0:** re-run Setup. 2.1.0 adds an `RdMentions` column to
+`RoutingLog`; the health check will flag it and add it in place. Nothing else
+changes and no data moves.
+
 ## Mount point
 
 The web part owns `#rtg`. If a loader stub has already put `#rtg` on the page it
@@ -39,18 +43,29 @@ Provisioned automatically into the host site:
 
 Card columns are prefixed `Rd` (`RdKey`, `RdBucket`, `RdOrder`, `RdProgress`,
 `RdPriority`, `RdStart`, `RdDue`, `RdCompleted`, `RdNotes`, `RdAssigned`,
-`RdLabels`, `RdChecklist`, `RdFiles`, `RdComments`, `RdFolder`).
+`RdLabels`, `RdChecklist`, `RdFiles`, `RdComments`, `RdFolder`). Log columns are
+`RdKey`, `RdKind`, `RdType`, `RdText`, `RdWhen`, `RdMentions`.
 
 ## Features
 
-Buckets with drag-and-drop and in-column reordering. Multi-assignee people
-picker resolved through `ensureuser`. Labels, checklists, due and start dates,
-priority, progress. Per-card document folders with drag-drop upload. Comments
-and a timestamped activity log. Board / Grid / Charts views, grouped by bucket,
-person, progress, priority or due date — dropping a card on a lane sets that
-field, so dragging onto a person reassigns. My-cards filter, CSV export, deep
-links (`#rdcard=RD-xxxx`). Email on assignment via SharePoint `SendEmail`,
-toggleable. ETag concurrency with a conflict path. Dark mode, keyboard
+Buckets with drag-and-drop and in-column reordering. Completed cards collapse
+into a per-bucket **Completed** section rather than cluttering the column.
+Multi-assignee people picker resolved through `ensureuser`. Labels, checklists,
+due and start dates, priority, progress.
+
+Comments take `@mentions` — type `@`, pick from the directory, and that person
+gets emailed with a link to the card. Documents upload the moment they are
+dropped or picked; on a brand new card, adding a document creates the card and
+uploads in one step. Card edits autosave, including when the card is closed
+mid-edit.
+
+Board / Grid / Charts views, grouped by bucket, person, progress, priority or
+due date — dropping a card on a lane sets that field, so dragging onto a person
+reassigns. My-cards filter, CSV export, deep links (`#rdcard=RD-xxxx`).
+
+Email on assignment and mention via SharePoint `SendEmail`, toggleable, with a
+**Send a test email** button in Settings and visible errors when the site's mail
+service refuses. ETag concurrency with a conflict path. Dark mode, keyboard
 navigation, focus-trapped dialogs, and a diagnostics panel holding the last 120
 REST calls.
 

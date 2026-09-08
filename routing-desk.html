@@ -1,5 +1,5 @@
 <!-- ============================================================
-     ROUTING DESK  v2.0.0
+     ROUTING DESK  v2.1.0
      Single-file SharePoint Script Editor web part.
      Planner-style board for routing documents through the squadron.
      Vanilla JS. No dependencies. Everything scoped to #rtg.
@@ -114,12 +114,14 @@
   width:100%;border:1px solid var(--rd-line-strong);background:var(--rd-surface);
   border-radius:var(--rd-r);padding:6px 9px;font-size:13px;
 }
-#rtg .rd-textarea{min-height:78px;resize:vertical;line-height:1.45}
+#rtg .rd-textarea{min-height:62px;resize:vertical;line-height:1.45}
+#rtg .rd-textarea--sm{min-height:44px}
+#rtg .rd-input--date{max-width:152px}
 #rtg .rd-search{width:230px}
-#rtg .rd-field{display:block;margin-bottom:12px}
+#rtg .rd-field{display:block;margin-bottom:9px}
 #rtg .rd-label{
   display:block;font:11px/1.4 var(--rd-mono);text-transform:uppercase;
-  letter-spacing:.8px;color:var(--rd-muted);margin-bottom:5px;
+  letter-spacing:.8px;color:var(--rd-muted);margin-bottom:4px;
 }
 
 /* ---------- filter strip ---------- */
@@ -158,6 +160,16 @@
 #rtg .rd-drop{padding:8px;overflow-y:auto;flex:1 1 auto;min-height:56px;display:flex;flex-direction:column;gap:8px}
 #rtg .rd-drop.is-over{background:var(--rd-accent-soft);box-shadow:inset 0 0 0 2px var(--rd-accent)}
 #rtg .rd-col-foot{padding:6px 8px;border-top:1px solid var(--rd-line)}
+
+#rtg .rd-donebar{
+  display:flex;align-items:center;gap:7px;width:100%;margin-top:2px;
+  border:0;border-top:1px solid var(--rd-line);background:transparent;cursor:pointer;
+  padding:9px 2px 5px;color:var(--rd-muted);font:11px/1 var(--rd-mono);
+  text-transform:uppercase;letter-spacing:.8px;
+}
+#rtg .rd-donebar:hover{color:var(--rd-ink-2)}
+#rtg .rd-donecaret{font-size:10px;line-height:1}
+#rtg .rd-donebar .rd-col-n{margin-left:auto}
 
 #rtg .rd-card{
   background:var(--rd-surface);border:1px solid var(--rd-line);border-radius:var(--rd-r);
@@ -239,14 +251,15 @@
 }
 #rtg .rd-modal--wide{max-width:800px}
 #rtg .rd-modal-h{
-  display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--rd-line);
+  display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:1px solid var(--rd-line);
 }
-#rtg .rd-modal-t{font:400 20px/1.25 var(--rd-serif);flex:1 1 auto;word-break:break-word}
-#rtg .rd-modal-b{padding:16px}
-#rtg .rd-modal-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--rd-line);flex-wrap:wrap}
-#rtg .rd-grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+#rtg .rd-modal-t{font:400 19px/1.25 var(--rd-serif);flex:1 1 auto;word-break:break-word}
+#rtg .rd-modal-b{padding:13px 14px}
+#rtg .rd-modal-f{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--rd-line);flex-wrap:wrap}
+#rtg .rd-grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+#rtg .rd-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}
 #rtg .rd-wide{grid-column:1/-1}
-#rtg .rd-sec{font:400 16px/1.2 var(--rd-serif);margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--rd-line)}
+#rtg .rd-sec{font:400 15px/1.2 var(--rd-serif);margin:13px 0 6px;padding-top:10px;border-top:1px solid var(--rd-line)}
 #rtg .rd-sec:first-child{margin-top:0;padding-top:0;border-top:0}
 
 /* ---------- people ---------- */
@@ -268,22 +281,25 @@
 #rtg .rd-x:hover{color:var(--rd-danger)}
 
 /* ---------- labels / checklist / files / comments ---------- */
-#rtg .rd-labgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
-#rtg .rd-labpick{display:flex;align-items:center;gap:8px;border:1px solid var(--rd-line);border-radius:var(--rd-r);
-  padding:6px 8px;cursor:pointer;background:var(--rd-surface);font-size:12.5px;text-align:left;width:100%}
+#rtg .rd-labgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:5px}
+#rtg .rd-labpick{display:flex;align-items:center;gap:7px;border:1px solid var(--rd-line);border-radius:var(--rd-r);
+  padding:5px 7px;cursor:pointer;background:var(--rd-surface);font-size:12.5px;text-align:left;width:100%}
 #rtg .rd-labpick[aria-pressed="true"]{border-color:var(--rd-accent);background:var(--rd-accent-soft)}
 #rtg .rd-labdot{width:12px;height:12px;border-radius:3px;background:var(--rd-lab,#999);flex:none}
-#rtg .rd-list{display:flex;flex-direction:column;gap:6px}
-#rtg .rd-row{display:flex;align-items:center;gap:9px;border:1px solid var(--rd-line);border-radius:var(--rd-r);
-  padding:8px 10px;background:var(--rd-surface-2)}
+#rtg .rd-list{display:flex;flex-direction:column;gap:4px}
+#rtg .rd-row .rd-input{border-color:transparent;background:transparent;padding:2px 4px}
+#rtg .rd-row .rd-input:focus{border-color:var(--rd-line-strong);background:var(--rd-surface)}
+#rtg .rd-row{display:flex;align-items:center;gap:8px;border:1px solid var(--rd-line);border-radius:var(--rd-r);
+  padding:6px 9px;background:var(--rd-surface-2)}
 #rtg .rd-row-main{flex:1 1 auto;min-width:0}
 #rtg .rd-row-t{font-size:13px;word-break:break-word}
 #rtg .rd-row-s{font:11px/1.4 var(--rd-mono);color:var(--rd-muted);margin-top:2px}
 #rtg .rd-row.is-done .rd-row-t{text-decoration:line-through;color:var(--rd-muted)}
-#rtg .rd-drop-zone{border:2px dashed var(--rd-line-strong);border-radius:var(--rd-r);padding:16px;text-align:center;
-  color:var(--rd-muted);font-size:12.5px;background:var(--rd-surface-2);margin-bottom:8px}
+#rtg .rd-drop-zone{border:2px dashed var(--rd-line-strong);border-radius:var(--rd-r);padding:10px;text-align:center;
+  color:var(--rd-muted);font-size:12.5px;background:var(--rd-surface-2);margin-bottom:7px}
 #rtg .rd-drop-zone.is-over{border-color:var(--rd-accent);background:var(--rd-accent-soft);color:var(--rd-accent)}
-#rtg .rd-feed{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto}
+#rtg .rd-feed{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow:auto}
+#rtg .rd-mention{color:var(--rd-accent);font-weight:650}
 #rtg .rd-note{border-left:3px solid var(--rd-line-strong);padding:2px 0 2px 10px}
 #rtg .rd-note-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 #rtg .rd-note-w{font-size:12.5px;font-weight:650}
@@ -311,7 +327,8 @@
   #rtg .rd-search{width:100%}
   #rtg .rd-col{flex-basis:min(84vw,300px);width:min(84vw,300px);max-height:none}
   #rtg .rd-brand{width:100%}
-  #rtg .rd-grid2{grid-template-columns:1fr}
+  #rtg .rd-grid2,#rtg .rd-grid3{grid-template-columns:1fr}
+  #rtg .rd-input--date{max-width:none}
   #rtg .rd-veil{padding:0}
   #rtg .rd-modal{border-radius:0;min-height:100%}
 }
@@ -328,7 +345,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "2.0.0";
+  var VERSION = "2.1.0";
   /* Mount point. A loader stub may already have put #rtg on the page; if so we
      adopt it and drop the spare copy that ships with this fragment. */
   var hosts = document.querySelectorAll("#rtg");
@@ -419,12 +436,6 @@
     if (isNaN(d)) { return null; }
     return Math.floor((Date.now() - d.getTime()) / 86400000);
   }
-  function bytes(n) {
-    n = Number(n) || 0;
-    if (n < 1024) { return n + " B"; }
-    if (n < 1048576) { return (n / 1024).toFixed(0) + " KB"; }
-    return (n / 1048576).toFixed(1) + " MB";
-  }
   function parseJson(str, fallback) {
     try { var v = JSON.parse(str); return v === null ? fallback : v; } catch (e) { return fallback; }
   }
@@ -476,6 +487,7 @@
     cards: [],
     view: "board",
     groupBy: "bucket",
+    doneOpen: {},
     search: "",
     filter: { mine: false, label: "", bucket: "", progress: "", due: "" },
     sort: { key: "due", dir: 1 },
@@ -642,7 +654,8 @@
       ["RdNotes", "Note"], ["RdAssigned", "UserMulti"], ["RdLabels", "Note"],
       ["RdChecklist", "Note"], ["RdFiles", "Number"], ["RdComments", "Number"], ["RdFolder", "Text"]
     ],
-    log: [["RdKey", "Text"], ["RdKind", "Text"], ["RdType", "Text"], ["RdText", "Note"], ["RdWhen", "DateTime"]],
+    log: [["RdKey", "Text"], ["RdKind", "Text"], ["RdType", "Text"], ["RdText", "Note"],
+      ["RdWhen", "DateTime"], ["RdMentions", "Note"]],
     cfg: [["RdJson", "Note"]]
   };
 
@@ -866,23 +879,25 @@
     loadThread: function (key) {
       return SP.getAll("web/lists/getbytitle('" + SP.esc(L.log) +
         "')/items?$top=200&$orderby=Id desc&$filter=RdKey eq '" + SP.esc(key) +
-        "'&$select=Id,RdKind,RdType,RdText,RdWhen,Author/Title&$expand=Author")
+        "'&$select=Id,RdKind,RdType,RdText,RdWhen,RdMentions,Author/Title&$expand=Author")
         .then(function (items) {
           return items.map(function (i) {
             return {
               id: i.Id, kind: i.RdKind || "event", type: i.RdType || "",
               text: i.RdText || "", when: i.RdWhen || null,
+              mentions: parseJson(i.RdMentions, []) || [],
               who: (i.Author && i.Author.Title) || ""
             };
           });
         });
     },
 
-    addLog: function (key, kind, type, text) {
+    addLog: function (key, kind, type, text, mentions) {
       return SP.write("web/lists/getbytitle('" + SP.esc(L.log) + "')/items", "POST", {
         __metadata: { type: LIVE.logEntityType },
         Title: type || kind, RdKey: key, RdKind: kind,
-        RdType: type || "", RdText: text || "", RdWhen: new Date().toISOString()
+        RdType: type || "", RdText: text || "", RdWhen: new Date().toISOString(),
+        RdMentions: JSON.stringify(mentions || [])
       });
     },
 
@@ -1083,9 +1098,10 @@
         return Promise.resolve(clone(log.filter(function (e) { return e.cardKey === key; })
           .sort(function (a, b) { return new Date(b.when) - new Date(a.when); })));
       },
-      addLog: function (key, kind, type, text) {
+      addLog: function (key, kind, type, text, mentions) {
         log.push({
           id: seq++, cardKey: key, kind: kind, type: type, text: text,
+          mentions: mentions || [],
           when: new Date().toISOString(), who: "Gault, Justin TSgt"
         });
         return Promise.resolve();
@@ -1525,10 +1541,34 @@
 
     var drop = h("div.rd-drop", { "data-group": group.key });
     var list = sortCards(group.cards);
-    if (!list.length) {
+    var splitDone = S.groupBy !== "progress";
+    var live = splitDone ? list.filter(function (c) { return !isDone(c); }) : list;
+    var done = splitDone ? list.filter(isDone) : [];
+
+    if (!live.length && !done.length) {
       drop.appendChild(h("div.rd-empty", { text: "Nothing here" }));
     } else {
-      list.forEach(function (card) { drop.appendChild(renderCard(card)); });
+      live.forEach(function (card) { drop.appendChild(renderCard(card)); });
+    }
+
+    if (done.length) {
+      var expanded = S.doneOpen[group.key] || S.filter.progress === "Completed";
+      drop.appendChild(h("button.rd-donebar", {
+        type: "button", "aria-expanded": String(expanded),
+        on: {
+          click: function () {
+            S.doneOpen[group.key] = !expanded;
+            renderView();
+          }
+        }
+      }, [
+        h("span.rd-donecaret", { text: expanded ? "▾" : "▸" }),
+        h("span", { text: "Completed" }),
+        h("span.rd-col-n", { text: String(done.length) })
+      ]));
+      if (expanded) {
+        done.forEach(function (card) { drop.appendChild(renderCard(card)); });
+      }
     }
 
     if (group.droppable) { wireDrop(drop, group); }
@@ -1909,6 +1949,7 @@
   function closeModal() {
     closeMenu();
     var top = S.modalStack.pop();
+    if (top && top.onClose) { try { top.onClose(); } catch (e) { /* noop */ } }
     if (top && top.veil.parentNode) { top.veil.parentNode.removeChild(top.veil); }
     S.modal = S.modalStack[S.modalStack.length - 1] || null;
     if (top && top.restore && top.restore.focus) { try { top.restore.focus(); } catch (e) { /* noop */ } }
@@ -2023,6 +2064,103 @@
     return wrap;
   }
 
+  /* Comment box with @mention autocomplete. Typing @ then a couple of letters
+     searches the directory; picking someone inserts their name and adds them to
+     the notify list for this comment. */
+  function mentionComposer(placeholder) {
+    var wrap = h("div.rd-people");
+    var ta = h("textarea.rd-textarea.rd-textarea--sm", { placeholder: placeholder });
+    var menuBox = h("div.rd-people-menu", { hidden: true });
+    var mentions = [];
+    var current = [], active = -1;
+
+    function token() {
+      var pos = ta.selectionStart;
+      var upto = ta.value.slice(0, pos);
+      var m = /(?:^|\s)@([^\s@]{0,40})$/.exec(upto);
+      if (!m) { return null; }
+      return { start: pos - m[1].length - 1, end: pos, query: m[1] };
+    }
+    function hide() { menuBox.hidden = true; clear(menuBox); current = []; active = -1; }
+    function highlight() {
+      qa(".rd-person", menuBox).forEach(function (n, i) { n.classList.toggle("is-active", i === active); });
+    }
+    function insert(person) {
+      var t = token();
+      if (!t) { hide(); return; }
+      DATA.ensureUser(person.login).then(function (user) {
+        var name = user.name || person.name;
+        var head = ta.value.slice(0, t.start) + "@" + name + " ";
+        ta.value = head + ta.value.slice(t.end);
+        ta.setSelectionRange(head.length, head.length);
+        if (!mentions.some(function (x) { return x.id === user.id; })) {
+          mentions.push({ id: user.id, name: name, email: user.email || person.email || "" });
+        }
+        hide();
+        ta.focus();
+      }).catch(function (err) { hide(); fail(err, "Could not resolve user"); });
+    }
+
+    var look = debounce(function () {
+      var t = token();
+      if (!t || t.query.length < 1) { hide(); return; }
+      DATA.searchPeople(t.query).then(function (people) {
+        clear(menuBox);
+        current = people;
+        if (!people.length) { hide(); return; }
+        people.forEach(function (p, i) {
+          menuBox.appendChild(h("button.rd-person", {
+            type: "button",
+            on: {
+              mousedown: function (e) { e.preventDefault(); insert(p); },
+              mouseenter: function () { active = i; highlight(); }
+            }
+          }, [
+            h("span.rd-av", { text: initials(p.name) }),
+            h("span", {}, [h("div.rd-person-n", { text: p.name }), h("div.rd-person-e", { text: p.email || "" })])
+          ]));
+        });
+        menuBox.hidden = false;
+        active = 0;
+        highlight();
+      }).catch(hide);
+    }, 200);
+
+    ta.addEventListener("input", look);
+    ta.addEventListener("keydown", function (e) {
+      if (menuBox.hidden) { return; }
+      if (e.key === "ArrowDown") { e.preventDefault(); active = Math.min(active + 1, current.length - 1); highlight(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(active - 1, 0); highlight(); }
+      else if (e.key === "Enter" || e.key === "Tab") {
+        if (current[active]) { e.preventDefault(); insert(current[active]); }
+      } else if (e.key === "Escape") { e.preventDefault(); hide(); }
+    });
+    ta.addEventListener("blur", function () { setTimeout(hide, 200); });
+
+    wrap.appendChild(ta);
+    wrap.appendChild(menuBox);
+    return {
+      wrap: wrap, input: ta, mentions: mentions,
+      reset: function () { ta.value = ""; mentions.length = 0; hide(); }
+    };
+  }
+
+  function escapeRe(v) { return String(v).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+  function paintCommentText(node, text, mentions) {
+    var names = (mentions || []).map(function (m) { return m.name; })
+      .filter(Boolean).sort(function (a, b) { return b.length - a.length; });
+    if (!names.length) { node.textContent = text; return; }
+    var re = new RegExp("@(" + names.map(escapeRe).join("|") + ")", "g");
+    var last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) { node.appendChild(document.createTextNode(text.slice(last, m.index))); }
+      node.appendChild(h("span.rd-mention", { text: "@" + m[1] }));
+      last = m.index + m[0].length;
+    }
+    node.appendChild(document.createTextNode(text.slice(last)));
+  }
+
   /* =========================================================
      13. card editor / detail
      ========================================================= */
@@ -2088,11 +2226,11 @@
       on: { change: function (e) { commit({ priority: e.target.value }); } }
     }, PRIORITY.map(function (p) { return h("option", { value: p, text: p, selected: p === model.priority }); }));
 
-    var startInput = h("input.rd-input", {
+    var startInput = h("input.rd-input.rd-input--date", {
       type: "date", value: dayKey(model.start),
       on: { change: function (e) { commit({ start: e.target.value ? new Date(e.target.value + "T12:00:00").toISOString() : null }); } }
     });
-    var dueInput = h("input.rd-input", {
+    var dueInput = h("input.rd-input.rd-input--date", {
       type: "date", value: dayKey(model.due),
       on: { change: function (e) { commit({ due: e.target.value ? new Date(e.target.value + "T12:00:00").toISOString() : null }); } }
     });
@@ -2185,7 +2323,11 @@
     var fileInput = h("input", { type: "file", multiple: true, hidden: true });
     var dropZone = h("div.rd-drop-zone", {}, [
       h("div", { text: "Drop documents here" }),
-      h("div.rd-hint", { text: model.isNew ? "Files upload once the card is created." : "Or use the button below." }),
+      h("div.rd-hint", {
+        text: model.isNew
+          ? "Adding a document creates the card and uploads straight away."
+          : "Uploads as soon as you drop or pick them."
+      }),
       h("div", { style: { "margin-top": "8px" } }, [
         h("button.rd-btn.rd-btn--sm", { type: "button", text: "Browse files", on: { click: function () { fileInput.click(); } } })
       ])
@@ -2196,8 +2338,33 @@
       var files = Array.prototype.slice.call(list || []);
       if (!files.length) { return; }
       if (model.isNew) {
-        queued = queued.concat(files);
-        paintQueued();
+        if (!title.value.trim()) {
+          toast("Give the card a title first, then add documents.", "bad");
+          title.focus();
+          return;
+        }
+        model.title = title.value.trim();
+        model.notes = notes.value;
+        dropZone.classList.add("is-over");
+        createCard(model, []).then(function (card) {
+          return DATA.uploadFiles(card, files).then(function (res) {
+            return DATA.updateCard(card, { files: files.length, folder: res.folder }).then(function () {
+              card.files = files.length;
+              card.folder = res.folder;
+              return DATA.addLog(card.key, "event", "Documents added",
+                files.map(function (f) { return f.name; }).join(", "));
+            });
+          }).then(function () {
+            dropZone.classList.remove("is-over");
+            toast(files.length + " file(s) uploaded", "good");
+            closeModal();
+            renderView(); refreshCounts();
+            openEditor(card);
+          });
+        }).catch(function (err) {
+          dropZone.classList.remove("is-over");
+          fail(err, "Upload failed");
+        });
         return;
       }
       dropZone.classList.add("is-over");
@@ -2212,33 +2379,14 @@
       }).catch(function (err) { dropZone.classList.remove("is-over"); fail(err, "Upload failed"); });
     }
 
-    function paintQueued() {
-      clear(fileList);
-      queued.forEach(function (f, i) {
-        fileList.appendChild(h("div.rd-row", {}, [
-          h("div.rd-row-main", {}, [
-            h("div.rd-row-t", { text: f.name }),
-            h("div.rd-row-s", { text: bytes(f.size) + " · queued" })
-          ]),
-          h("button.rd-x", {
-            type: "button", text: "×", "aria-label": "Remove",
-            on: { click: function () { queued.splice(i, 1); paintQueued(); } }
-          })
-        ]));
-      });
-    }
-
     function paintFiles() {
-      if (model.isNew) { paintQueued(); return Promise.resolve(); }
+      if (model.isNew) { clear(fileList); return Promise.resolve(); }
       return DATA.listFiles(model).then(function (files) {
         clear(fileList);
         if (!files.length) { fileList.appendChild(h("div.rd-empty", { text: "No documents attached" })); return; }
         files.forEach(function (f) {
           fileList.appendChild(h("div.rd-row", {}, [
-            h("div.rd-row-main", {}, [
-              h("div.rd-row-t", { text: f.name }),
-              h("div.rd-row-s", { text: bytes(f.size) + " · " + (f.who || "") + " · " + fmtWhen(f.when) })
-            ]),
+            h("div.rd-row-main", {}, [h("div.rd-row-t", { text: f.name })]),
             h("button.rd-btn.rd-btn--sm", {
               type: "button", text: "Open",
               on: { click: function () { window.open(f.url, "_blank", "noopener"); } }
@@ -2271,7 +2419,8 @@
     });
 
     /* --- comments + activity --- */
-    var commentBox = h("textarea.rd-textarea", { placeholder: "Add a comment for whoever picks this up next" });
+    var composer = mentionComposer("Comment, or type @ to notify someone");
+    var commentBox = composer.input;
     var commentFeed = h("div.rd-feed");
     var activityFeed = h("div.rd-feed");
 
@@ -2283,9 +2432,11 @@
         clear(commentFeed); clear(activityFeed);
         if (!comments.length) { commentFeed.appendChild(h("div.rd-empty", { text: "No comments yet" })); }
         comments.forEach(function (c) {
+          var line = h("div.rd-note-b");
+          paintCommentText(line, c.text, c.mentions);
           commentFeed.appendChild(h("div.rd-note", {}, [
             h("div.rd-note-h", {}, [h("span.rd-note-w", { text: c.who || "Someone" }), h("span.rd-note-d", { text: fmtWhen(c.when) })]),
-            h("div.rd-note-b", { text: c.text })
+            line
           ]));
         });
         if (!events.length) { activityFeed.appendChild(h("div.rd-empty", { text: "No activity recorded" })); }
@@ -2300,7 +2451,7 @@
 
     /* --- assemble --- */
     body.appendChild(field("Title", title, true));
-    var grid = h("div.rd-grid2", {}, [
+    var grid = h("div.rd-grid3", {}, [
       field("Bucket", bucketSel),
       field("Progress", progSel),
       field("Priority", prioSel),
@@ -2322,19 +2473,23 @@
 
     if (!model.isNew) {
       body.appendChild(h("h3.rd-sec", { text: "Comments" }));
-      body.appendChild(commentBox);
-      body.appendChild(h("div", { style: { margin: "8px 0 12px" } }, [
+      body.appendChild(composer.wrap);
+      body.appendChild(h("div", { style: { margin: "6px 0 10px" } }, [
         h("button.rd-btn.rd-btn--primary.rd-btn--sm", {
           type: "button", text: "Post comment",
           on: {
             click: function () {
               var text = commentBox.value.trim();
               if (!text) { return; }
-              commentBox.value = "";
-              DATA.addLog(model.key, "comment", "", text)
+              var said = composer.mentions.slice();
+              composer.reset();
+              DATA.addLog(model.key, "comment", "", text, said)
                 .then(function () { return commit({ comments: (model.comments || 0) + 1 }); })
                 .then(paintThread)
-                .then(function () { if (S.config.notify.onComment) { notifyComment(model, text); } })
+                .then(function () {
+                  if (said.length) { return notifyMention(model, text, said); }
+                  if (S.config.notify.onComment) { return notifyComment(model, text); }
+                })
                 .catch(function (err) { fail(err, "Comment failed"); });
             }
           }
@@ -2376,10 +2531,26 @@
       saveNote
     ]);
 
+    /* Autosave. Every control already commits on change; this catches the case
+       where someone types and then clicks straight off the card without blurring
+       the field, and gives typed text a periodic save while they work. */
+    function flushEdits() {
+      if (model.isNew) { return; }
+      var pending = {};
+      var typed = title.value.trim() || "(untitled)";
+      if (typed !== model.title) { pending.title = typed; }
+      if (notes.value !== model.notes) { pending.notes = notes.value; }
+      if (Object.keys(pending).length) { commit(pending); }
+    }
+    var autosave = debounce(flushEdits, 900);
+    title.addEventListener("input", autosave);
+    notes.addEventListener("input", autosave);
+
     openModal({
       title: model.isNew ? "New routing card" : model.title,
       wide: true, body: body, actions: actions, headerExtra: extras
     });
+    S.modal.onClose = flushEdits;
 
     if (!model.isNew) { paintFiles(); paintThread(); }
   }
@@ -2427,6 +2598,7 @@
         toast("Card created" + (queued && queued.length ? " with " + queued.length + " document(s)" : ""), "good");
         renderView(); refreshCounts();
         if (card.assignees.length) { notifyAssignees(card, card.assignees); }
+        return card;
       });
     });
   }
@@ -2468,6 +2640,11 @@
     card.assignees = next;
     renderView();
     saveCard(card, { assignees: next }, mine ? "Unassigned self" : "Assigned to " + S.me.Title)
+      .then(function () {
+        if (!mine) {
+          return notifyAssignees(card, [{ id: S.me.Id, name: S.me.Title, email: S.me.Email }]);
+        }
+      })
       .catch(function (err) { fail(err, "Update failed"); });
   }
 
@@ -2513,8 +2690,11 @@
       card.notes ? "<p>" + escapeHtml(card.notes) + "</p>" : "",
       '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>'
     ].join("");
-    return DATA.sendMail(to, subject, body).catch(function (err) {
-      logDiag("Mail suppressed: " + err.message);
+    return DATA.sendMail(to, subject, body).then(function () {
+      if (DATA.kind === "live") { toast("Emailed " + to.join(", "), "good"); }
+    }).catch(function (err) {
+      logDiag("Mail failed: " + err.message);
+      toast("Saved, but the email did not send: " + String(err.message).slice(0, 160), "bad", 9000);
     });
   }
 
@@ -2527,6 +2707,25 @@
       "<p>" + escapeHtml(S.me.Title) + " commented:</p><p>" + escapeHtml(text) + "</p>" +
       '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>'
     ).catch(function () { /* non-fatal */ });
+  }
+
+  function notifyMention(card, text, people) {
+    if (!S.config.notify.enabled) { return Promise.resolve(); }
+    var to = people.map(function (p) { return p.email; })
+      .filter(function (e) { return e && e.indexOf("@") > 0; });
+    if (!to.length) { return Promise.resolve(); }
+    return DATA.sendMail(to,
+      (S.config.notify.subjectTag || "[Routing Desk]") + " " + S.me.Title + " mentioned you on " + card.title,
+      "<p>" + escapeHtml(S.me.Title) + " mentioned you on <strong>" +
+      escapeHtml(card.title) + "</strong>:</p><p>" + escapeHtml(text) + "</p>" +
+      '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>'
+    ).then(function () {
+      if (DATA.kind === "live") { toast("Notified " + to.join(", "), "good"); }
+    }).catch(function (err) {
+      logDiag("Mention mail failed: " + err.message);
+      toast("Comment saved, but the notification did not send: " +
+        String(err.message).slice(0, 140), "bad", 9000);
+    });
   }
 
   function escapeHtml(v) {
@@ -2664,6 +2863,35 @@
       h("label.rd-row", {}, [notifyComment, h("span.rd-row-main", {}, [h("div.rd-row-t", { text: "When a comment is posted" })])])
     ]));
     body.appendChild(field("Subject prefix", subjectTag, true));
+    body.appendChild(h("div", {}, [
+      h("button.rd-btn.rd-btn--sm", {
+        type: "button", text: "Send a test email to myself",
+        on: {
+          click: function (e) {
+            var btn = e.currentTarget;
+            btn.disabled = true;
+            if (!S.me.Email) {
+              toast("Your SharePoint profile has no email address on it.", "bad", 8000);
+              btn.disabled = false;
+              return;
+            }
+            DATA.sendMail([S.me.Email],
+              (subjectTag.value.trim() || "[Routing Desk]") + " Test",
+              "<p>Routing Desk can send mail from this site.</p>")
+              .then(function () {
+                toast("Test sent to " + S.me.Email + ". Delivery can lag a few minutes.", "good", 9000);
+              })
+              .catch(function (err) {
+                toast("Mail failed: " + String(err.message).slice(0, 200), "bad", 12000);
+              })
+              .then(function () { btn.disabled = false; });
+          }
+        }
+      }),
+      h("div.rd-hint", {
+        text: "SharePoint only delivers to people who are members of this site."
+      })
+    ]));
 
     body.appendChild(h("h3.rd-sec", { text: "Buckets" }));
     var bucketList = h("div.rd-list");
