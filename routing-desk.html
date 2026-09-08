@@ -1,5 +1,5 @@
 <!-- ============================================================
-     ROUTING DESK  v2.1.0
+     ROUTING DESK  v2.2.0
      Single-file SharePoint Script Editor web part.
      Planner-style board for routing documents through the squadron.
      Vanilla JS. No dependencies. Everything scoped to #rtg.
@@ -345,7 +345,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "2.1.0";
+  var VERSION = "2.2.0";
   /* Mount point. A loader stub may already have put #rtg on the page; if so we
      adopt it and drop the spare copy that ships with this fragment. */
   var hosts = document.querySelectorAll("#rtg");
@@ -470,7 +470,14 @@
         { key: "l5", name: "Read Ahead", tone: LABEL_TONES[4] },
         { key: "l6", name: "Rework", tone: LABEL_TONES[5] }
       ],
-      notify: { enabled: true, onAssign: true, onComment: false, subjectTag: "[Routing Desk]" },
+      notify: {
+        enabled: true,
+        mode: "off",
+        webhookUrl: "",
+        onAssign: true,
+        onComment: false,
+        subjectTag: "[Routing Desk]"
+      },
       dueSoonDays: 3,
       staleDays: 7,
       allowDelete: true,
@@ -968,17 +975,62 @@
       });
     },
 
-    sendMail: function (to, subject, body) {
+    /* SharePoint's own SendEmail API was retired for SharePoint Online on
+       31 Oct 2025, so the default transport is a Power Automate flow with an
+       HTTP request trigger. The legacy path is kept for on-prem farms, where
+       the API still works. */
+    sendMail: function (to, subject, body, meta) {
       var recipients = (to || []).filter(Boolean);
       if (!recipients.length) { return Promise.resolve(); }
-      return SP.write("SP.Utilities.Utility.SendEmail", "POST", {
-        properties: {
-          __metadata: { type: "SP.Utilities.EmailProperties" },
-          To: { results: recipients },
-          Subject: subject,
-          Body: body
+      var n = S.config.notify || {};
+
+      if (n.mode === "webhook") {
+        if (!n.webhookUrl) {
+          return Promise.reject(new Error(
+            "No Power Automate URL is set. Settings → Email notifications."));
         }
-      });
+        return fetch(n.webhookUrl, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: recipients,
+            subject: subject,
+            html: body,
+            from: S.me.Title,
+            card: (meta && meta.key) || "",
+            link: (meta && meta.link) || "",
+            site: SP.webUrl()
+          })
+        }).then(function (res) {
+          logDiag("POST " + res.status + " power-automate");
+          if (res.ok) { return null; }
+          return res.text().then(function (t) {
+            throw new Error("The flow returned HTTP " + res.status +
+              (t ? " - " + t.slice(0, 200) : ""));
+          });
+        }).catch(function (err) {
+          if (err instanceof TypeError) {
+            throw new Error("Could not reach the flow. Check the URL is the " +
+              "full HTTP POST URL from the trigger, and that it has not expired.");
+          }
+          throw err;
+        });
+      }
+
+      if (n.mode === "sharepoint") {
+        return SP.write("SP.Utilities.Utility.SendEmail", "POST", {
+          properties: {
+            __metadata: { type: "SP.Utilities.EmailProperties" },
+            To: { results: recipients },
+            Subject: subject,
+            Body: body
+          }
+        });
+      }
+
+      return Promise.reject(new Error(
+        "No email transport is set up. Settings → Email notifications."));
     }
   };
 
@@ -2676,8 +2728,20 @@
     } else { window.prompt("Copy this link", url); }
   }
 
+  /* True when a transport is actually configured. Without this every
+     assignment would fire a failure toast on a board that has simply not been
+     wired up to a flow yet. */
+  function mailReady() {
+    var n = S.config.notify || {};
+    if (!n.enabled) { return false; }
+    if (DATA.kind === "demo") { return true; }
+    if (n.mode === "webhook") { return /^https:\/\//i.test(n.webhookUrl || ""); }
+    if (n.mode === "sharepoint") { return true; }
+    return false;
+  }
+
   function notifyAssignees(card, people) {
-    if (!S.config.notify.enabled || !S.config.notify.onAssign) { return Promise.resolve(); }
+    if (!mailReady() || !S.config.notify.onAssign) { return Promise.resolve(); }
     var to = people.map(function (p) { return p.email; }).filter(function (e) { return e && e.indexOf("@") > 0; });
     if (!to.length) { return Promise.resolve(); }
     var subject = (S.config.notify.subjectTag || "[Routing Desk]") + " " + card.title;
@@ -2690,27 +2754,31 @@
       card.notes ? "<p>" + escapeHtml(card.notes) + "</p>" : "",
       '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>'
     ].join("");
-    return DATA.sendMail(to, subject, body).then(function () {
-      if (DATA.kind === "live") { toast("Emailed " + to.join(", "), "good"); }
-    }).catch(function (err) {
-      logDiag("Mail failed: " + err.message);
-      toast("Saved, but the email did not send: " + String(err.message).slice(0, 160), "bad", 9000);
-    });
+    return DATA.sendMail(to, subject, body, { key: card.key, link: cardLink(card) })
+      .then(function () {
+        if (DATA.kind === "live") { toast("Emailed " + to.join(", "), "good"); }
+      }).catch(function (err) {
+        logDiag("Mail failed: " + err.message);
+        toast("Saved, but the email did not send: " + String(err.message).slice(0, 180), "bad", 9000);
+      });
   }
 
   function notifyComment(card, text) {
     var to = (card.assignees || []).map(function (p) { return p.email; })
       .filter(function (e) { return e && e.indexOf("@") > 0 && e !== S.me.Email; });
-    if (!to.length || !S.config.notify.enabled) { return Promise.resolve(); }
+    if (!to.length || !mailReady()) { return Promise.resolve(); }
     return DATA.sendMail(to,
       (S.config.notify.subjectTag || "[Routing Desk]") + " Comment on " + card.title,
       "<p>" + escapeHtml(S.me.Title) + " commented:</p><p>" + escapeHtml(text) + "</p>" +
-      '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>'
-    ).catch(function () { /* non-fatal */ });
+      '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>',
+      { key: card.key, link: cardLink(card) }
+    ).catch(function (err) {
+      logDiag("Comment mail failed: " + err.message);
+    });
   }
 
   function notifyMention(card, text, people) {
-    if (!S.config.notify.enabled) { return Promise.resolve(); }
+    if (!mailReady()) { return Promise.resolve(); }
     var to = people.map(function (p) { return p.email; })
       .filter(function (e) { return e && e.indexOf("@") > 0; });
     if (!to.length) { return Promise.resolve(); }
@@ -2718,7 +2786,8 @@
       (S.config.notify.subjectTag || "[Routing Desk]") + " " + S.me.Title + " mentioned you on " + card.title,
       "<p>" + escapeHtml(S.me.Title) + " mentioned you on <strong>" +
       escapeHtml(card.title) + "</strong>:</p><p>" + escapeHtml(text) + "</p>" +
-      '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>'
+      '<p><a href="' + escapeHtml(cardLink(card)) + '">Open the card</a></p>',
+      { key: card.key, link: cardLink(card) }
     ).then(function () {
       if (DATA.kind === "live") { toast("Notified " + to.join(", "), "good"); }
     }).catch(function (err) {
@@ -2837,6 +2906,15 @@
     var staleDays = h("input.rd-input", { type: "number", min: "1", max: "90", value: String(cfg.staleDays) });
     var allowDelete = h("input", { type: "checkbox", checked: !!cfg.allowDelete });
     var notifyOn = h("input", { type: "checkbox", checked: !!cfg.notify.enabled });
+    var mailMode = h("select.rd-select", {}, [
+      h("option", { value: "webhook", text: "Power Automate flow (SharePoint Online)", selected: cfg.notify.mode === "webhook" }),
+      h("option", { value: "sharepoint", text: "SharePoint SendEmail (on-prem only, retired in SPO)", selected: cfg.notify.mode === "sharepoint" }),
+      h("option", { value: "off", text: "No email", selected: !cfg.notify.mode || cfg.notify.mode === "off" })
+    ]);
+    var webhookUrl = h("input.rd-input", {
+      type: "url", value: cfg.notify.webhookUrl || "",
+      placeholder: "https://prod-00.westeurope.logic.azure.com:443/workflows/..."
+    });
     var notifyAssign = h("input", { type: "checkbox", checked: !!cfg.notify.onAssign });
     var notifyComment = h("input", { type: "checkbox", checked: !!cfg.notify.onComment });
     var subjectTag = h("input.rd-input", { type: "text", value: cfg.notify.subjectTag || "" });
@@ -2854,10 +2932,22 @@
     ])]));
 
     body.appendChild(h("h3.rd-sec", { text: "Email notifications" }));
-    body.appendChild(h("div.rd-list", {}, [
+    body.appendChild(field("How email is sent", mailMode, true));
+    body.appendChild(field("Power Automate HTTP POST URL", webhookUrl, true));
+    body.appendChild(h("div.rd-hint", {
+      text: "Microsoft retired SharePoint's own SendEmail API for SharePoint Online on " +
+        "31 Oct 2025, so mail goes through a flow instead. Create a flow with a " +
+        "\"When an HTTP request is received\" trigger and a \"Send an email (V2)\" action, " +
+        "then paste the trigger's URL here. Anyone who can open this board can read " +
+        "that URL from the config list, so keep the flow limited to sending mail."
+    }));
+    body.appendChild(h("div.rd-hint", {
+      text: "The flow receives JSON: to (array), subject, html, from, card, link, site."
+    }));
+    body.appendChild(h("div.rd-list", { style: { "margin-top": "9px" } }, [
       h("label.rd-row", {}, [notifyOn, h("span.rd-row-main", {}, [
-        h("div.rd-row-t", { text: "Send email from SharePoint" }),
-        h("div.rd-row-s", { text: "Uses the site's mail service. Recipients must be site users." })
+        h("div.rd-row-t", { text: "Send notifications" }),
+        h("div.rd-row-s", { text: "Master switch. Turn off to silence the board entirely." })
       ])]),
       h("label.rd-row", {}, [notifyAssign, h("span.rd-row-main", {}, [h("div.rd-row-t", { text: "When someone is assigned a card" })])]),
       h("label.rd-row", {}, [notifyComment, h("span.rd-row-main", {}, [h("div.rd-row-t", { text: "When a comment is posted" })])])
@@ -2875,21 +2965,30 @@
               btn.disabled = false;
               return;
             }
+            /* Test against what is on screen, not what was last saved, so the
+               settings can be proved before committing them. */
+            var live = S.config.notify;
+            S.config.notify = {
+              enabled: true, mode: mailMode.value, webhookUrl: webhookUrl.value.trim(),
+              onAssign: true, onComment: false, subjectTag: subjectTag.value.trim()
+            };
             DATA.sendMail([S.me.Email],
               (subjectTag.value.trim() || "[Routing Desk]") + " Test",
-              "<p>Routing Desk can send mail from this site.</p>")
+              "<p>Routing Desk can send mail from this site.</p>",
+              { key: "TEST", link: location.href.split("#")[0] })
               .then(function () {
                 toast("Test sent to " + S.me.Email + ". Delivery can lag a few minutes.", "good", 9000);
               })
               .catch(function (err) {
-                toast("Mail failed: " + String(err.message).slice(0, 200), "bad", 12000);
+                toast("Mail failed: " + String(err.message).slice(0, 220), "bad", 14000);
               })
-              .then(function () { btn.disabled = false; });
+              .then(function () { S.config.notify = live; btn.disabled = false; });
           }
         }
       }),
       h("div.rd-hint", {
-        text: "SharePoint only delivers to people who are members of this site."
+        text: "Sends through whatever is selected above, using the values on screen, " +
+          "so you can prove the setup before saving it."
       })
     ]));
 
@@ -2954,8 +3053,12 @@
           cfg.staleDays = Math.max(1, Number(staleDays.value) || 7);
           cfg.allowDelete = allowDelete.checked;
           cfg.notify = {
-            enabled: notifyOn.checked, onAssign: notifyAssign.checked,
-            onComment: notifyComment.checked, subjectTag: subjectTag.value.trim() || "[Routing Desk]"
+            enabled: notifyOn.checked,
+            mode: mailMode.value,
+            webhookUrl: webhookUrl.value.trim(),
+            onAssign: notifyAssign.checked,
+            onComment: notifyComment.checked,
+            subjectTag: subjectTag.value.trim() || "[Routing Desk]"
           };
           S.config = cfg;
           persistConfig().then(function () { toast("Settings saved", "good"); });
@@ -3051,6 +3154,8 @@
       "User: " + S.me.Title + " (id " + S.me.Id + ")" + (S.me.isOwner ? " · site owner" : ""),
       "Cards loaded: " + S.cards.length,
       "Buckets: " + S.config.buckets.length,
+      "Mail transport: " + ((S.config.notify || {}).mode || "off") +
+        (mailReady() ? " (configured)" : " (NOT configured - no mail will send)"),
       "UA: " + navigator.userAgent,
       "",
       "--- recent requests ---"

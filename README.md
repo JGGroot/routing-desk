@@ -20,9 +20,53 @@ Vanilla JS, no dependencies, no build step. One file.
 Opened as a local file it runs on seeded sample data so it can be demoed
 without touching SharePoint. `?rddemo=1` forces that mode.
 
-**Upgrading from 2.0.0:** re-run Setup. 2.1.0 adds an `RdMentions` column to
+**Upgrading from 2.0.0:** re-run Setup. 2.1.0 added an `RdMentions` column to
 `RoutingLog`; the health check will flag it and add it in place. Nothing else
-changes and no data moves.
+changes and no data moves. 2.2.0 changes how email is sent — see below.
+
+## Email
+
+Microsoft retired SharePoint's own `SP.Utilities.Utility.SendEmail` API for
+SharePoint Online on **31 October 2025**, so on SPO it returns HTTP 400 and no
+mail is sent. Notifications go through a Power Automate flow instead.
+
+Build the flow once:
+
+1. Create a flow with the **When an HTTP request is received** trigger.
+2. Give it this request body schema:
+
+   ```json
+   {
+     "type": "object",
+     "properties": {
+       "to":      { "type": "array", "items": { "type": "string" } },
+       "subject": { "type": "string" },
+       "html":    { "type": "string" },
+       "from":    { "type": "string" },
+       "card":    { "type": "string" },
+       "link":    { "type": "string" },
+       "site":    { "type": "string" }
+     }
+   }
+   ```
+
+3. Add **Office 365 Outlook → Send an email (V2)**: *To* = `join(triggerBody()?['to'], ';')`,
+   *Subject* = `subject`, *Body* = `html`, and turn the body's rich-text switch on.
+4. Save, copy the trigger's **HTTP POST URL**, and paste it into
+   Settings → *Power Automate HTTP POST URL* with the transport set to
+   **Power Automate flow**.
+5. Press **Send a test email to myself**. It sends using the values on screen,
+   so you can prove the wiring before saving.
+
+The trigger URL carries its own signature, so anyone who can read the board's
+config list can also read the URL and make the flow send mail. Keep the flow
+limited to sending, and treat the URL as semi-public. If that is not acceptable,
+drive notifications from a flow triggered on **When an item is created** in
+`RoutingLog` instead — every action and comment writes a row there, mentions
+included, so no secret has to live in the page at all.
+
+On-premises farms can still select **SharePoint SendEmail (on-prem only)**,
+where the API continues to work.
 
 ## Mount point
 
@@ -63,9 +107,10 @@ Board / Grid / Charts views, grouped by bucket, person, progress, priority or
 due date — dropping a card on a lane sets that field, so dragging onto a person
 reassigns. My-cards filter, CSV export, deep links (`#rdcard=RD-xxxx`).
 
-Email on assignment and mention via SharePoint `SendEmail`, toggleable, with a
-**Send a test email** button in Settings and visible errors when the site's mail
-service refuses. ETag concurrency with a conflict path. Dark mode, keyboard
+Email on assignment and mention through a Power Automate flow (see **Email**
+above), toggleable, with a **Send a test email** button in Settings and visible
+errors when mail is refused rather than a silent failure. ETag concurrency with
+a conflict path. Dark mode, keyboard
 navigation, focus-trapped dialogs, and a diagnostics panel holding the last 120
 REST calls.
 
